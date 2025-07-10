@@ -1,0 +1,36 @@
+{
+  "folders": [
+    {
+      "name": "client",
+      "path": "client"
+    },
+    {
+      "name": "server",
+      "path": "server"
+    }
+  ],
+  "settings": {
+    "workbench.colorCustomizations": {
+      "commandCenter.border": "#e7e7e799",
+      "editorGroup.border": "#3450cf",
+      "sash.hoverBorder": "#3450cf",
+      "sideBar.border": "#3450cf",
+      "statusBar.background": "#3450cf",
+      "statusBar.debuggingBackground": "#cfb334",
+      "statusBar.debuggingForeground": "#15202b",
+      "statusBar.foreground": "#e7e7e7",
+      "statusBarItem.hoverBackground": "#5d74d9",
+      "statusBarItem.remoteBackground": "#3450cf",
+      "statusBarItem.remoteForeground": "#e7e7e7",
+      "tab.activeBorder": "#3450cf",
+      "titleBar.activeBackground": "#3450cf",
+      "titleBar.activeForeground": "#e7e7e7",
+      "titleBar.inactiveBackground": "#3450cf99",
+      "titleBar.inactiveForeground": "#e7e7e799"
+    },
+    "peacock.color": "#3450cf",
+    "cSpell.words": [
+      "Umas"
+    ]
+  }
+}

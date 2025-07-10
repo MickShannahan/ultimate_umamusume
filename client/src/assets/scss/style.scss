@@ -1,0 +1,86 @@
+@import '_main.scss';
+@import '_fonts.scss';
+
+body {
+  background-color: var(--site-bg-color, var(--bs-teal-light));
+  background-image: url("https://www.transparenttextures.com/patterns/diagmonds-light.png"), linear-gradient(transparent, white);
+  ;
+  transition: all 1s ease;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  --nav-height: 50px;
+  --main-height: calc(100dvh - var(--nav-height));
+}
+
+nav {
+  height: var(--nav-height);
+  display: flex;
+  align-items: center;
+}
+
+main {
+  height: var(--main-height);
+  backdrop-filter: brightness(1.2) saturate(3.5);
+}
+
+#pop-toast-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
+  align-items: end;
+}
+
+.angled-box {
+  transform: skew(-25deg);
+
+  >* {
+    transform: skew(25deg);
+  }
+}
+
+
+.text-outline {
+  color: white;
+  --outline-color: black;
+  text-shadow:
+    2px 0 var(--outline-color),
+    1.5px 1.5px var(--outline-color),
+    0 2px var(--outline-color),
+    -1.5px 1.5px var(--outline-color),
+    -2px 0 var(--outline-color),
+    -1.5px -1.5px var(--outline-color),
+    0 -2px var(--outline-color),
+    1.5px -1.5px var(--outline-color);
+}
+
+/* Custom scrollbar styles */
+::-webkit-scrollbar {
+  width: 8px;
+  background: transparent;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+
+::-webkit-scrollbar-thumb {
+  background: var(--bs-teal);
+  border-radius: 4px;
+  opacity: 0;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--bs-teal);
+  opacity: 1;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--bs-teal) transparent; // The second value is the track color
+}
