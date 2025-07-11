@@ -5,7 +5,7 @@ body {
   background-color: var(--site-bg-color, var(--bs-teal-light));
   background-image: url("https://www.transparenttextures.com/patterns/diagmonds-light.png"), linear-gradient(transparent, white);
   ;
-  transition: all 1s ease;
+  transition: background-color 1s ease;
 }
 
 #app {

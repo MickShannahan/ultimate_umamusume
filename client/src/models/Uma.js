@@ -42,7 +42,8 @@ export class Uma {
       uniform: Array.isArray(data.pictures?.uniform) ? data.pictures.uniform : [],
       racingOutfit: Array.isArray(data.pictures?.racing_outfit) ? data.pictures.racing_outfit : [],
       conceptArt: Array.isArray(data.pictures?.concept_art) ? data.pictures.concept_art : [],
-      startingFuture: Array.isArray(data.pictures?.starting_future) ? data.pictures.starting_future : []
+      startingFuture: Array.isArray(data.pictures?.starting_future) ? data.pictures.starting_future : [],
+      default: Array.isArray(data.pictures?.default) ? data.pictures.default : []
     };
   }
 

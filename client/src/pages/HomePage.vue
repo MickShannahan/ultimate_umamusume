@@ -41,7 +41,9 @@ async function getOneUma(umaId) {
 
 <template>
   <section class="uma-grid">
-    <ActiveUma />
+    <div class="uma-active">
+      <ActiveUma />
+    </div>
     <div class="uma-list">
       <TransitionGroup name="list">
         <div v-for="uma in umas" :key="`uma-card-${uma.id}`">
@@ -62,6 +64,12 @@ async function getOneUma(umaId) {
   padding: 0 1rem;
 }
 
+.uma-active {
+  grid-column: 1/2;
+  grid-row: 1/2;
+  position: relative;
+}
+
 .uma-list {
   max-height: 100%;
   overflow-y: auto;
@@ -71,6 +79,8 @@ async function getOneUma(umaId) {
   gap: .75em;
   padding: 1em;
   padding-left: 3em;
+  grid-column: 2/3;
+  grid-row: 1/2;
 }
 
 .list-enter-active,
