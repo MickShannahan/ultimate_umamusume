@@ -1,12 +1,12 @@
 from PIL import Image, ImageSequence
 
 fileName = '31_inesfujin.webp'
-whiteThreshold = 230
+whiteThreshold = 228
 
 import os
 from PIL import Image, ImageSequence, ImageDraw
 
-SOURCE_FOLDER = "imagesSources"
+SOURCE_FOLDER = "imagesSource"
 OUTPUT_FOLDER = "imagesClean"
 
 os.makedirs(OUTPUT_FOLDER, exist_ok=True)
