@@ -84,3 +84,42 @@ main {
   scrollbar-width: thin;
   scrollbar-color: var(--bs-teal) transparent; // The second value is the track color
 }
+
+
+@keyframes bounce-img {
+  0% {
+    transform: translateY(0) scale3d(1, 1, 1);
+  }
+
+  10% {
+    transform: translateY(0) scale3d(1.1, 0.9, 1);
+  }
+
+  20% {
+    transform: translateY(-30px) scale3d(0.9, 1.1, 1);
+  }
+
+  30% {
+    transform: translateY(-60px) scale3d(1.15, 0.85, 1);
+  }
+
+  50% {
+    transform: translateY(0) scale3d(0.95, 1.05, 1);
+  }
+
+  65% {
+    transform: translateY(-15px) scale3d(1.05, 0.95, 1);
+  }
+
+  75% {
+    transform: translateY(0) scale3d(0.98, 1.02, 1);
+  }
+
+  85% {
+    transform: translateY(-5px) scale3d(1.02, 0.98, 1);
+  }
+
+  100% {
+    transform: translateY(0) scale3d(1, 1, 1);
+  }
+}
