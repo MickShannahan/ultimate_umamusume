@@ -1,67 +1,33 @@
 <script setup>
+import { RaceState } from '@/AppState.js';
 import { Racer } from '@/models/Racer.js';
 import { logger } from '@/utils/Logger.js';
-import { computed, reactive, ref, useTemplateRef } from 'vue';
+import { computed, watch, ref, useTemplateRef } from 'vue';
 
-const props = defineProps({ racer: { type: Racer }, trackLength: Number })
-defineExpose({ run })
+const {racer, trackLength} = defineProps({ racer: { type: Racer }, trackLength: Number })
+defineExpose({  })
 const emit = defineEmits(['racer:finished'])
 
-const racerState = reactive({
-  ...props.racer.stats,
-  currentSpeed: 0,
-  inRecovery: false
-})
 
 const spriteElm = useTemplateRef('racer-sprite')
 const distance = ref(0)
-const distanceRan = computed(() => distance.value + 'cm')
+const distanceRan = computed(() => racer.position + 'cm')
 const finished = ref(false)
 const speedBurst = ref(false)
 
-function run() {
-  if (finished.value) return
-  if (distance.value >= props.trackLength) {
-    logger.log('🏁🏇', props.racer.name,)
-    finished.value = true
-    distance.value = props.trackLength + 1.5;
-    emitFinished()
-    return
+
+watch(()=> racer.position, ()=>{
+
+  if(finished.value)return
+  if(racer.position >= trackLength){
+    racerFinished()
   }
-
-  if (racerState.currentSpeed == 0) {
-    const gateStartPower = racerState.power / 8 + Math.random() * 2
-    racerState.currentSpeed += Math.trunc(gateStartPower)
-
-  } else if (racerState.currentSpeed < racerState.speed && racerState.stamina > 0) {
-    const accelPower = racerState.power / 20
-    racerState.currentSpeed += accelPower
-
-  }
-
-  if (racerState.stamina > props.racer.stats.stamina * .75) {
-    racerState.inRecovery = false
-
-  } else if (racerState.stamina <= 0) {
-    racerState.inRecovery = true
-  }
-
-
-  if (racerState.inRecovery) {
-    racerState.currentSpeed -= props.racer.stats.speed * .085
-    racerState.currentSpeed = Math.max(racerState.currentSpeed, racerState.speed / 3)
-  }
-
-  let randomVariance = Math.random() * .5
-  let distanceToMove = racerState.currentSpeed / 50 + randomVariance
-  distance.value += distanceToMove
-  racerState.stamina -= racerState.inRecovery ? props.racer.stats.stamina * -.05 : (distanceToMove)
-
-  speedEffects(racerState.currentSpeed)
-}
+  
+  speedEffects(racer.velocity)
+})
 
 function speedEffects(currentSpeed) {
-  const characterSpeed = props.racer.stats.speed
+  const characterSpeed = racer.baseStats.speed
   if (currentSpeed > characterSpeed / 1.5) {
     logger.log('🌨️')
     createLineEffect(500, 100, 100)
@@ -74,6 +40,7 @@ function createDustEffect(duration = 500, ttl = 200, delay = 50) {
   if (duration <= 0) return
   const dustParticle = document.createElement('i')
   dustParticle.classList.add('dust')
+  // @ts-ignore
   dustParticle.addEventListener('animationend', (ev) => ev.target.remove())
   dustParticle.style = `--rand-deg: ${Math.random() * 25}deg; --ttl: ${ttl}ms;`
   spriteElm.value.parentElement.appendChild(dustParticle)
@@ -86,6 +53,7 @@ function createLineEffect(duration = 500, ttl = 200, delay = 50) {
   if (duration <= 0) return
   const dustParticle = document.createElement('i')
   dustParticle.classList.add('line')
+  // @ts-ignore
   dustParticle.addEventListener('animationend', (ev) => ev.target.remove())
   dustParticle.style = `--rand-h: ${Math.random() * 45 + 15}px; --ttl: ${ttl}ms;`
   spriteElm.value.parentElement.appendChild(dustParticle)
@@ -94,8 +62,11 @@ function createLineEffect(duration = 500, ttl = 200, delay = 50) {
   }, delay)
 }
 
-function emitFinished() {
-  emit('racer:finished', props.racer)
+function racerFinished() {
+  emit('racer:finished', racer)
+  finished.value = true
+  const racerRef = RaceState.racers.find(r => r == racer)
+  racerRef.position = trackLength + 1
 }
 
 </script>
@@ -103,8 +74,8 @@ function emitFinished() {
 
 <template>
   <div v-if="racer" class="sprite-wrapper">
-    <div class="debug">{{ racerState.currentSpeed }} {{ racerState.stamina }} <span
-        v-if="racerState.inRecovery">💚</span></div>
+    <div class="debug"><i class="mdi mdi-horseshoe"></i>{{ racer.velocity.toFixed(1) }}  <i class="mdi mdi-heart"></i>{{ racer.staminaLeft.toFixed(1) }} <span
+        v-if="racer.inRecovery">💚</span></div>
     <img ref="racer-sprite" :src="racer.sprite" alt="racer icon" class="racer-sprite" :class="{ finished, speedBurst }">
   </div>
 </template>

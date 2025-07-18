@@ -1,29 +1,23 @@
 <script setup>
 import CharacterSelect from '@/components/CharacterSelect.vue'
-import speImg from '../../../imageData/imagesClean/01_specialweek_clean.webp'
-import maruImg from '../../../imageData/imagesClean/04_maruzensky_clean.webp'
-import taikiImg from '../../../imageData/imagesClean/10_taikishuttle_clean.webp'
-import inesImg from '../../../imageData/imagesClean/32_inesfujin_clean.webp'
-import eishinImg from '../../../imageData/imagesClean/37_eishinflash_clean.webp'
+
 import RacerElm from '@/components/Racer.vue'
-import { onMounted, ref, useTemplateRef } from 'vue'
+import { computed, onMounted, ref, useTemplateRef } from 'vue'
 import { logger } from '@/utils/Logger.js'
 import { Racer } from '@/models/Racer.js'
+import { RaceState } from '@/AppState.js'
+import { seconds } from '@/utils/Timer.js'
 
-const racers = [
-  new Racer({ name: 'special week', sprite: speImg, stats: { speed: 120, power: 10, stamina: 20 } }),
-  new Racer({ name: 'marunzensky', sprite: maruImg, stats: { speed: 50, power: 50, stamina: 50 } }),
-  new Racer({ name: 'taiki shuttle', sprite: taikiImg, stats: { speed: 50, power: 20, stamina: 80 } }),
-  new Racer({ name: 'ines fujin', sprite: inesImg, stats: { speed: 80, power: 38, stamina: 32 } }),
-  // new Racer({ name: 'eishin flash', sprite: eishinImg, stats: { speed: 50, power: 50, stamina: 25 } }),
-]
+
 
 const finishedRacers = ref([])
 
+const racers = computed(()=> RaceState.racers)
+const currentlyRacing = ref(false)
 
 const trackLength = 150
 
-const raceLanes = racers.length
+const raceLanes = racers.value.length
 
 const racersElms = ref([])
 
@@ -31,15 +25,41 @@ let runLoop = null
 
 function startRace() {
   finishedRacers.value = []
-  runLoop = setInterval(runRacers, 250)
+  currentlyRacing.value = true
+  logger.log(racers.value)
+  racers.value.forEach(racer => {
+    racer.resetStats()
+  })
+  setTimeout(runRacers, 1000)
 }
 
-function runRacers() {
-  racersElms.value.forEach(r => r.run())
+async function runRacers(ticksPerSecond = 5 ) {
+let tickInterval =  1 * seconds / ticksPerSecond
+let prevTime = performance.now()
+
+  while(currentlyRacing.value){
+    let currentTime = performance.now()
+    let delta = (currentTime - prevTime) / (1*seconds)
+    prevTime = currentTime
+    
+    RaceState.racers.forEach(racer => racer.run(delta))
+    
+    const elapsed = performance.now() - currentTime;
+    const waitTime = Math.max(0, tickInterval - elapsed);
+    await new Promise(resolve => setTimeout(resolve, waitTime));
+    checkForRaceEnd()
+  }
+  logger.log('Race Ended')
 }
 
 function onRacerFinished(racer) {
   finishedRacers.value.push(racer)
+}
+
+function checkForRaceEnd(){
+  if(finishedRacers.value.length == RaceState.racers.length){
+    currentlyRacing.value = false
+  }
 }
 
 
@@ -61,9 +81,10 @@ function onRacerFinished(racer) {
     <div class="race-track">
       <div class="d-flex">
         <div class="tracks">
-          <div v-for="(lane, n) in raceLanes" :key="`race-lane-${lane}`" class="race-lane" ref="racers">
-            <RacerElm :racer="racers[n]" :ref="(el) => { if (el && racers[n]) racersElms[n] = el }" :trackLength
+          <div v-for="(lane, n) in raceLanes" :key="`race-lane-${lane}`" :class="`race-lane ${racers[n].name}`" >
+            <RacerElm :racer="racers[n]"  :trackLength
               @racer:finished="onRacerFinished" />
+              <!-- :ref="(el) => { if (el && racers[n]) racersElms[n] = el }" -->
           </div>
         </div>
         <div class="finish-line"></div>
@@ -71,7 +92,7 @@ function onRacerFinished(racer) {
     </div>
 
     <div class="menu-bar">
-      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#character-select-menu">
+      <button class="btn btn-primary" data-bs-toggle="offcanvas" data-bs-target="#character-select-menu">
         Character Select<i class="mdi mdi-menu"></i>
       </button>
     </div>
