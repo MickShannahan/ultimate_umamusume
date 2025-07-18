@@ -13,6 +13,7 @@ export class Racer {
     }
     this.stats = { ...this.baseStats }
     this.staminaLeft = this.baseStats.stamina
+    this.staminaBurn = this.baseStats.staminaBurn || .08
     this.startingBoost = baseStats.startingBoost || 0
     this.position = 0
     this.velocity = 0
@@ -38,23 +39,23 @@ export class Racer {
     const gateBoost = this.velocity == 0 ? this.startingBoost ? this.startingBoost : this.powerNormal * .5 : 0
     if (this.staminaLeft > 0) {
       const acceleration = (this.powerNormal) * deltaT
-      const randomVariation = (Math.random() * 2.2) - (Math.random() * 1.5)
+      const randomVariation = (Math.random() * 1.5) - (Math.random() * 1.5)
       this.velocity = Math.min(this.velocity + acceleration, this.speedNormal) + randomVariation + gateBoost
       const distance = this.velocity * deltaT
       this.position += distance
 
-      const staminaCost = this.velocity * 0.075
+      const staminaCost = this.velocity * this.staminaBurn
       this.staminaLeft = Math.max(0, this.staminaLeft - staminaCost)
     }
   }
 
   get speedNormal() {
     const capped = Math.max(1, this.stats.speed)
-    return (Math.log10(capped) * 10) * .5
+    return (Math.log10(capped) * 10) * .35
   }
 
   get powerNormal() {
     const capped = Math.max(1, this.stats.power)
-    return Math.log10(capped) * 3
+    return (Math.log10(capped) * 10) * .75
   }
 }

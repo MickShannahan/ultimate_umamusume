@@ -27,11 +27,11 @@ watch(()=> racer.position, ()=>{
 })
 
 function speedEffects(currentSpeed) {
-  const characterSpeed = racer.baseStats.speed
-  if (currentSpeed > characterSpeed / 1.5) {
+  if (racer.velocity > 9) {
     logger.log('🌨️')
     createLineEffect(500, 100, 100)
-  } else if (currentSpeed > characterSpeed / 2) {
+  } 
+  else if (racer.velocity > 6) {
     createDustEffect(500, 600, 75)
   }
 }
