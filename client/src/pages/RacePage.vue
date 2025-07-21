@@ -15,39 +15,54 @@ const finishedRacers = ref([])
 const racers = computed(()=> RaceState.racers)
 const currentlyRacing = ref(false)
 
-const trackLength = 150
+const trackLength = 400
 
 const raceLanes = racers.value.length
 
+const raceTrackElm = useTemplateRef('race-track')
+let cameraX = ref(0)
+
 const racersElms = ref([])
 
-let runLoop = null
 
 function startRace() {
-  finishedRacers.value = []
+  resetRace()
   currentlyRacing.value = true
+  setTimeout(runRacers, 1000)
+}
+
+function resetRace(){
+  finishedRacers.value = []
+  currentlyRacing.value = false
   logger.log(racers.value)
   racers.value.forEach(racer => {
     racer.resetStats()
   })
-  setTimeout(runRacers, 1000)
 }
 
-async function runRacers(ticksPerSecond = 5 ) {
-let tickInterval =  1 * seconds / ticksPerSecond
-let prevTime = performance.now()
+function forceBurst(){
+  RaceState.racers.forEach(r => r.enterBurst())
+}
 
+let gameSpeed = ref(1)
+
+async function runRacers(ticksPerSecond = 5 ) {
+  let tickInterval =  1 * seconds / ticksPerSecond
+  let prevTime = performance.now()
+  
   while(currentlyRacing.value){
     let currentTime = performance.now()
-    let delta = (currentTime - prevTime) / (1*seconds)
+    let delta = ((currentTime - prevTime) / (1*seconds) * gameSpeed.value)
     prevTime = currentTime
     
-    RaceState.racers.forEach(racer => racer.run(delta))
+    const racersSorted = RaceState.racers.toSorted((ar, br) => br.position - ar.position)
+    RaceState.racers.forEach((racer, i) => racer.run(delta, i+ 1))
     
     const elapsed = performance.now() - currentTime;
     const waitTime = Math.max(0, tickInterval - elapsed);
     await new Promise(resolve => setTimeout(resolve, waitTime));
     checkForRaceEnd()
+    scrollRacerToView( racersSorted[0], delta)
   }
   logger.log('Race Ended')
 }
@@ -62,6 +77,22 @@ function checkForRaceEnd(){
   }
 }
 
+/** @argument {Racer} racer */
+function scrollRacerToView(racer, deltaTime){
+  const CM_TO_PX = 37.7952755906
+  const racerPosPx = racer.position * CM_TO_PX;
+
+  const screenWidth = window.innerWidth;
+  const targetX = racerPosPx - screenWidth / 2;
+
+  const trackLengthPx = trackLength * CM_TO_PX;
+  const clampedX = Math.max(0, Math.min(targetX, trackLengthPx - screenWidth));
+
+  const followSpeed = 5; 
+  const delta = clampedX - cameraX.value;
+  cameraX.value += delta * (1 - Math.exp(-followSpeed * deltaTime));
+}
+
 
 
 
@@ -72,13 +103,20 @@ function checkForRaceEnd(){
 
   <section class="race-grid">
     <div class="track-info">
-      <div><button class="btn btn-primary" @click="startRace">Start Race!</button></div>
+      <div class="d-flex gap-1">
+        <button class="btn btn-primary" @click="startRace">Start Race!</button>
+        <button class="btn btn-teal" @click="resetRace">Reset Race</button>
+        <button class="btn btn-orange" @click="forceBurst">🔥Burst!</button>
+        <input v-model="gameSpeed" type="number" class="form-control" style="width: 8ch;" step=".25">
+      </div>
       <span v-for="(racer, n) in finishedRacers" :key="`finished-racer-${racer.name}`" class="me-2">
         #{{ n + 1 }} {{ racer.name }}
       </span>
+    🎥{{ cameraX }}
+      <div></div>
     </div>
 
-    <div class="race-track">
+    <div class="race-track" ref="race-track" :style="`--camera-x-position: -${cameraX}px;`">
       <div class="d-flex">
         <div class="tracks">
           <div v-for="(lane, n) in raceLanes" :key="`race-lane-${lane}`" :class="`race-lane ${racers[n].name}`" >
@@ -124,7 +162,8 @@ function checkForRaceEnd(){
   padding: 25px;
   align-items: center;
   width: 100%;
-  overflow-x: auto;
+  overflow-x: hidden;
+
 
   .tracks {
     position: relative;
@@ -132,8 +171,22 @@ function checkForRaceEnd(){
     --track-height: calc(var(--sprite-size) / 2);
     display: grid;
     flex-grow: 1;
+    transform: translateX(var(--camera-x-position));
+    transition: transform .175s linear;
+    // gap: 20px;
     grid-auto-rows: var(--track-height);
-    background-image: url("https://www.transparenttextures.com/patterns/black-felt.png");
+    // background-image: url("https://www.transparenttextures.com/patterns/black-felt.png");
+    &::after{
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      background-image: url("https://www.transparenttextures.com/patterns/black-felt.png");
+      mix-blend-mode: exclusion;
+      opacity: .5;
+    }
 
     .race-lane {
       --track-offset: calc(var(--sprite-size) / 2);

@@ -73,9 +73,11 @@ function racerFinished() {
 
 
 <template>
-  <div v-if="racer" class="sprite-wrapper">
-    <div class="debug"><i class="mdi mdi-horseshoe"></i>{{ racer.velocity.toFixed(1) }}  <i class="mdi mdi-heart"></i>{{ racer.staminaLeft.toFixed(1) }} <span
-        v-if="racer.inRecovery">💚</span></div>
+  <div v-if="racer" class="sprite-wrapper" :id="'racer-'+racer.id">
+    <div class="debug"><i class="mdi mdi-horseshoe"></i>{{ racer.velocity.toFixed(1) }}  <i class="mdi mdi-heart"></i>{{ racer.staminaLeft.toFixed(1) }} 
+      <span v-if="racer.inRecovery">💚</span>
+      <span v-if="racer.inBurst">🔥</span>
+    </div>
     <img ref="racer-sprite" :src="racer.sprite" alt="racer icon" class="racer-sprite" :class="{ finished, speedBurst }">
   </div>
 </template>
@@ -92,7 +94,7 @@ div.debug {
   height: var(--sprite-size);
   width: var(--sprite-size);
   margin-left: v-bind(distanceRan);
-  transition: margin-left .5s linear;
+  transition: margin-left .25s linear;
   position: relative;
 }
 
