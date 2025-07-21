@@ -27,16 +27,16 @@ watch(()=> racer.position, ()=>{
 })
 
 function speedEffects(currentSpeed) {
-  if (racer.velocity > 9) {
+  if (racer.velocity > 8) {
     logger.log('🌨️')
     createLineEffect(500, 100, 100)
   } 
-  else if (racer.velocity > 6) {
-    createDustEffect(500, 600, 75)
+  else if (racer.velocity > 5.5) {
+    createDustEffect(200, 200, 100)
   }
 }
 
-function createDustEffect(duration = 500, ttl = 200, delay = 50) {
+function createDustEffect(duration = 500, ttl = 200, delay = 100) {
   if (duration <= 0) return
   const dustParticle = document.createElement('i')
   dustParticle.classList.add('dust')
@@ -87,14 +87,15 @@ function racerFinished() {
 div.debug {
   position: absolute;
   font-size: 11px;
+  z-index: 999;
   color: white;
 }
 
 .sprite-wrapper {
   height: var(--sprite-size);
   width: var(--sprite-size);
-  margin-left: v-bind(distanceRan);
-  transition: margin-left .25s linear;
+  left: v-bind(distanceRan);
+  // transition: left .199s linear;
   position: relative;
 }
 
@@ -102,6 +103,8 @@ div.debug {
   transform: scaleX(-1);
   width: 100%;
   height: auto;
+  position: relative;
+  z-index: 999
 }
 
 .racer-sprite.finished {
@@ -129,6 +132,22 @@ i.line {
   animation: lines var(--ttl) linear;
   bottom: var(--rand-h);
   left: calc(var(--sprite-size) /3);
+}
+
+i.ghost{
+  display: inline-block;
+  height: var(--sprite-size);
+  width: var(--sprite-size);
+  position: absolute;
+  z-index: 98;
+  background-image: v-bind('racer.spriteBg');
+  background-size: var(--sprite-size);
+  background-repeat: no-repeat;
+  background-position: center;
+  top: 0;
+  left: 0;
+  animation: ghosts var(--ttl) linear;
+  filter: contrast(0) brightness(2);
 }
 
 @keyframes dust {
@@ -161,6 +180,24 @@ i.line {
 
   100% {
     transform: scaleX(1.2) translate(-35px, 0px);
+    opacity: 0;
+  }
+
+}
+
+@keyframes ghosts {
+  0% {
+    transform: scaleX(-1) translate(0px, 0px);
+    opacity: .5;
+  }
+
+  99% {
+    transform: scaleX(-1) translate(100px, 0px);
+    opacity: 0;
+  }
+
+  100% {
+    transform: scaleX(-1) translate(100px, 0px);
     opacity: 0;
   }
 

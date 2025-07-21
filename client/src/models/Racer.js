@@ -14,10 +14,11 @@ export class Racer {
     }
     this.stats = { ...this.baseStats }
     this.staminaLeft = this.baseStats.stamina
-    this.staminaBurn = this.baseStats.staminaBurn || .05
+    this.staminaBurn = this.baseStats.staminaBurn || .6
     this.startingBoost = baseStats.startingBoost || 0
     this.position = 0
     this.velocity = 0
+    this.raceMaxVelocity = 0
     this.inRecovery = false
 
     this.racePlacement
@@ -26,6 +27,9 @@ export class Racer {
     this.effects = startingEffects ?? []
   }
 
+  get spriteBg() {
+    return `url(${this.sprite})`
+  }
 
   get speedNormal() {
     const capped = Math.max(1, this.stats.speed)
@@ -45,6 +49,7 @@ export class Racer {
   resetStats() {
     this.position = 0
     this.velocity = 0
+    this.raceMaxVelocity = 0
     this.stats = { ...this.baseStats }
     this.staminaLeft = this.baseStats.stamina
     logger.log('🏇', this.name, 'stats reset', this.stats)
@@ -76,20 +81,21 @@ export class Racer {
     const distance = this.velocity * deltaTime
     this.position += distance
 
-    const staminaCost = this.velocity * this.staminaBurn * this.airDrag
+    const staminaCost = (this.velocity * this.staminaBurn * this.airDrag) * deltaTime
     this.staminaLeft = Math.max(0, this.staminaLeft - staminaCost)
-    if (this.staminaLeft <= 0) this.enterRecovery()
+    this.raceMaxVelocity = Math.max(this.velocity, this.raceMaxVelocity)
+    if (this.staminaLeft <= this.stats.stamina * .5) this.enterRecovery()
   }
 
   runAtJog(deltaTime) {
-    const recoverySpeed = Math.max((this.speedNormal * .5), this.velocity * .98)
-    this.velocity = recoverySpeed * deltaTime
+    const recoverySpeed = Math.max((this.raceMaxVelocity * .5), this.velocity * .98)
+    this.velocity = recoverySpeed
     this.position += this.velocity * deltaTime
 
     const regenRate = 1.5 + (this.powerNormal * .25);
     this.staminaLeft += regenRate * deltaTime
 
-    if (this.staminaLeft >= (this.stats.stamina * .75)) this.exitRecovery();
+    if (this.staminaLeft >= this.stats.stamina) this.exitRecovery();
   }
 
   runAtBurst(deltaTime) {
@@ -105,7 +111,7 @@ export class Racer {
     const staminaCost = burstSpeed * (this.staminaBurn * .75) * this.airDrag
     this.staminaLeft -= staminaCost
 
-    if (this.staminaLeft <= 1) this.exitBurst();
+    if (this.staminaLeft <= 0) this.exitBurst();
   }
 
   enterRecovery() {

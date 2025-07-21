@@ -29,6 +29,7 @@ export const RaceState = reactive({
   racers: [
     new Racer('Special Week', speImg, { speed: 10, power: 10, stamina: 45 }),
     new Racer('Maruzensky', maruImg, { speed: 8, power: 12, stamina: 45 }),
+    new Racer('Ines Fujin', inesImg, { speed: 15, power: 10, stamina: 35 })
   ]
 })
 

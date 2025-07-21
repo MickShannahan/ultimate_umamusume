@@ -12,7 +12,7 @@ import { seconds } from '@/utils/Timer.js'
 
 const finishedRacers = ref([])
 
-const racers = computed(()=> RaceState.racers)
+const racers = computed(() => RaceState.racers)
 const currentlyRacing = ref(false)
 
 const trackLength = 400
@@ -31,7 +31,7 @@ function startRace() {
   setTimeout(runRacers, 1000)
 }
 
-function resetRace(){
+function resetRace() {
   finishedRacers.value = []
   currentlyRacing.value = false
   logger.log(racers.value)
@@ -40,29 +40,29 @@ function resetRace(){
   })
 }
 
-function forceBurst(){
+function forceBurst() {
   RaceState.racers.forEach(r => r.enterBurst())
 }
 
 let gameSpeed = ref(1)
 
-async function runRacers(ticksPerSecond = 5 ) {
-  let tickInterval =  1 * seconds / ticksPerSecond
+async function runRacers(ticksPerSecond = 60) {
+  let tickInterval = 1 * seconds / ticksPerSecond
   let prevTime = performance.now()
-  
-  while(currentlyRacing.value){
+
+  while (currentlyRacing.value) {
     let currentTime = performance.now()
-    let delta = ((currentTime - prevTime) / (1*seconds) * gameSpeed.value)
+    let delta = ((currentTime - prevTime) / (1 * seconds) * gameSpeed.value)
     prevTime = currentTime
-    
+
     const racersSorted = RaceState.racers.toSorted((ar, br) => br.position - ar.position)
-    RaceState.racers.forEach((racer, i) => racer.run(delta, i+ 1))
-    
+    RaceState.racers.forEach((racer, i) => racer.run(delta, i + 1))
+
     const elapsed = performance.now() - currentTime;
     const waitTime = Math.max(0, tickInterval - elapsed);
     await new Promise(resolve => setTimeout(resolve, waitTime));
     checkForRaceEnd()
-    scrollRacerToView( racersSorted[0], delta)
+    scrollRacerToView(racersSorted[0], delta)
   }
   logger.log('Race Ended')
 }
@@ -71,24 +71,24 @@ function onRacerFinished(racer) {
   finishedRacers.value.push(racer)
 }
 
-function checkForRaceEnd(){
-  if(finishedRacers.value.length == RaceState.racers.length){
+function checkForRaceEnd() {
+  if (finishedRacers.value.length == RaceState.racers.length) {
     currentlyRacing.value = false
   }
 }
 
 /** @argument {Racer} racer */
-function scrollRacerToView(racer, deltaTime){
+function scrollRacerToView(racer, deltaTime) {
   const CM_TO_PX = 37.7952755906
   const racerPosPx = racer.position * CM_TO_PX;
 
   const screenWidth = window.innerWidth;
   const targetX = racerPosPx - screenWidth / 2;
 
-  const trackLengthPx = trackLength * CM_TO_PX;
+  const trackLengthPx = (trackLength + 5) * CM_TO_PX;
   const clampedX = Math.max(0, Math.min(targetX, trackLengthPx - screenWidth));
 
-  const followSpeed = 5; 
+  const followSpeed = 5;
   const delta = clampedX - cameraX.value;
   cameraX.value += delta * (1 - Math.exp(-followSpeed * deltaTime));
 }
@@ -112,17 +112,21 @@ function scrollRacerToView(racer, deltaTime){
       <span v-for="(racer, n) in finishedRacers" :key="`finished-racer-${racer.name}`" class="me-2">
         #{{ n + 1 }} {{ racer.name }}
       </span>
-    🎥{{ cameraX }}
+      🎥{{ cameraX }}
       <div></div>
     </div>
 
     <div class="race-track" ref="race-track" :style="`--camera-x-position: -${cameraX}px;`">
       <div class="d-flex">
         <div class="tracks">
-          <div v-for="(lane, n) in raceLanes" :key="`race-lane-${lane}`" :class="`race-lane ${racers[n].name}`" >
-            <RacerElm :racer="racers[n]"  :trackLength
-              @racer:finished="onRacerFinished" />
-              <!-- :ref="(el) => { if (el && racers[n]) racersElms[n] = el }" -->
+          <div class="fence"></div>
+          <div v-for="(lane, n) in raceLanes" :key="`race-lane-${lane}`" :class="`race-lane ${racers[n].name}`">
+            <RacerElm :racer="racers[n]" :trackLength @racer:finished="onRacerFinished" />
+            <!-- :ref="(el) => { if (el && racers[n]) racersElms[n] = el }" -->
+          </div>
+          <div class="fence"></div>
+          <div class="d-flex flex-row-reverse justify-content-between text-light opacity-50">
+            <div class="distance-marker" v-for="(num) in Math.round(trackLength/20)">{{num * 20 == 0 ?'': num*20}}</div>
           </div>
         </div>
         <div class="finish-line"></div>
@@ -158,6 +162,7 @@ function scrollRacerToView(racer, deltaTime){
 
 .race-track {
   --track-length: calc(v-bind(trackLength) *1cm);
+  position: relative;
   display: flex;
   padding: 25px;
   align-items: center;
@@ -172,11 +177,12 @@ function scrollRacerToView(racer, deltaTime){
     display: grid;
     flex-grow: 1;
     transform: translateX(var(--camera-x-position));
-    transition: transform .175s linear;
+    // transition: transform .2s linear;
     // gap: 20px;
     grid-auto-rows: var(--track-height);
+
     // background-image: url("https://www.transparenttextures.com/patterns/black-felt.png");
-    &::after{
+    &::after {
       content: '';
       position: absolute;
       left: 0;
@@ -198,12 +204,24 @@ function scrollRacerToView(racer, deltaTime){
   }
 
   .finish-line {
+    position: relative;
+    right: 0;
     width: 45px;
     background-image: linear-gradient(black 50%, white 50%), linear-gradient(white 50%, black 50%), linear-gradient(black 50%, white 50%);
     background-size: 15px 25px, 15px 25px, 15px 25px;
     background-position: 0px 0px, 15px 25px, 30px 25px;
     background-repeat: repeat-y;
     mix-blend-mode: soft-light;
+  }
+
+  .fence {
+    height: 16px;
+    width: 100%;
+    background-image: url(@/assets/img/fence_post.png);
+    background-size: 16px;
+    // position: absolute;
+    // left: 0;
+    // top: -16px;
   }
 }
 
