@@ -105,6 +105,30 @@ def remove_edge_white(image):
 
     return image
 
+def save_sprite_sheet(frames, output_path, direction="horizontal", spacing=0, bg_color=(0, 0, 0, 0)):
+    if not frames:
+        return
+
+    frame_width, frame_height = frames[0].size
+    count = len(frames)
+
+    if direction == "horizontal":
+        sheet_width = frame_width * count + spacing * (count - 1)
+        sheet_height = frame_height
+    else:  # vertical
+        sheet_width = frame_width
+        sheet_height = frame_height * count + spacing * (count - 1)
+
+    sprite_sheet = Image.new("RGBA", (sheet_width, sheet_height), bg_color)
+
+    for i, frame in enumerate(frames):
+        x = i * (frame_width + spacing) if direction == "horizontal" else 0
+        y = i * (frame_height + spacing) if direction == "vertical" else 0
+        sprite_sheet.paste(frame, (x, y))
+
+    sprite_sheet.save(output_path)
+
+
 # ✅ Main loop
 for filename in os.listdir(SOURCE_FOLDER):
     if not filename.lower().endswith(".webp"):
@@ -137,6 +161,12 @@ for filename in os.listdir(SOURCE_FOLDER):
 
             # Save static first frame
             frames[2].save(output_static_path)
+            output_sheet_filename = f"{base}_sheet.png"
+            output_sheet_path = os.path.join(OUTPUT_FOLDER, output_sheet_filename)
+
+            # Save sprite sheet
+            save_sprite_sheet(frames, output_sheet_path, direction="horizontal", spacing=0)
+
 
         print(f"✅ Saved: {output_filename}")
     except Exception as e:

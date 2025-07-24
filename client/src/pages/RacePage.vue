@@ -7,6 +7,7 @@ import { logger } from '@/utils/Logger.js'
 import { Racer } from '@/models/Racer.js'
 import { RaceState } from '@/AppState.js'
 import { seconds } from '@/utils/Timer.js'
+import RaceMiniMap from '@/components/RaceMiniMap.vue'
 
 
 
@@ -16,6 +17,7 @@ const racers = computed(() => RaceState.racers)
 const currentlyRacing = ref(false)
 
 const trackLength = 400
+const raceTimer = ref(0)
 
 const raceLanes = racers.value.length
 
@@ -59,10 +61,11 @@ async function runRacers(ticksPerSecond = 60) {
     RaceState.racers.forEach((racer, i) => racer.run(delta, i + 1))
 
     const elapsed = performance.now() - currentTime;
+    raceTimer.value += Math.floor(elapsed * delta * seconds)
     const waitTime = Math.max(0, tickInterval - elapsed);
     await new Promise(resolve => setTimeout(resolve, waitTime));
     checkForRaceEnd()
-    scrollRacerToView(racersSorted[0], delta)
+    scrollRacerToView(racersSorted[0], delta * gameSpeed.value)
   }
   logger.log('Race Ended')
 }
@@ -102,7 +105,7 @@ function scrollRacerToView(racer, deltaTime) {
 <template>
 
   <section class="race-grid">
-    <div class="track-info">
+    <div class="track-info p-3">
       <div class="d-flex gap-1">
         <button class="btn btn-primary" @click="startRace">Start Race!</button>
         <button class="btn btn-teal" @click="resetRace">Reset Race</button>
@@ -112,8 +115,9 @@ function scrollRacerToView(racer, deltaTime) {
       <span v-for="(racer, n) in finishedRacers" :key="`finished-racer-${racer.name}`" class="me-2">
         #{{ n + 1 }} {{ racer.name }}
       </span>
-      🎥{{ cameraX }}
+      ⏱️{{ raceTimer }}
       <div></div>
+      <RaceMiniMap :racers :trackLength />
     </div>
 
     <div class="race-track" ref="race-track" :style="`--camera-x-position: -${cameraX}px;`">
@@ -126,7 +130,10 @@ function scrollRacerToView(racer, deltaTime) {
           </div>
           <div class="fence"></div>
           <div class="d-flex flex-row-reverse justify-content-between text-light opacity-50">
-            <div class="distance-marker" v-for="(num) in Math.round(trackLength/20)">{{num * 20 == 0 ?'': num*20}}</div>
+            <div class="distance-marker p-1"><i class="mdi mdi-flag-checkered"></i></div>
+            <div class="distance-marker p-1" v-for="(num) in Math.round(trackLength / 20)">{{ num * 20 == 0 ? '' : num *
+              20 }}
+            </div>
           </div>
         </div>
         <div class="finish-line"></div>
@@ -171,14 +178,16 @@ function scrollRacerToView(racer, deltaTime) {
 
 
   .tracks {
+    transform: translateX(var(--camera-x-position));
     position: relative;
     z-index: 99;
     --track-height: calc(var(--sprite-size) / 2);
+    --track-gap: var(--track-gap, 5px);
     display: grid;
+    padding: 10px;
     flex-grow: 1;
-    transform: translateX(var(--camera-x-position));
     // transition: transform .2s linear;
-    // gap: 20px;
+    gap: var(--track-gap);
     grid-auto-rows: var(--track-height);
 
     // background-image: url("https://www.transparenttextures.com/patterns/black-felt.png");
@@ -191,7 +200,8 @@ function scrollRacerToView(racer, deltaTime) {
       bottom: 0;
       background-image: url("https://www.transparenttextures.com/patterns/black-felt.png");
       mix-blend-mode: exclusion;
-      opacity: .5;
+      opacity: .25;
+      border-radius: 10px;
     }
 
     .race-lane {
@@ -206,6 +216,7 @@ function scrollRacerToView(racer, deltaTime) {
   .finish-line {
     position: relative;
     right: 0;
+    transform: translateX(var(--camera-x-position));
     width: 45px;
     background-image: linear-gradient(black 50%, white 50%), linear-gradient(white 50%, black 50%), linear-gradient(black 50%, white 50%);
     background-size: 15px 25px, 15px 25px, 15px 25px;
@@ -219,9 +230,9 @@ function scrollRacerToView(racer, deltaTime) {
     width: 100%;
     background-image: url(@/assets/img/fence_post.png);
     background-size: 16px;
-    // position: absolute;
-    // left: 0;
-    // top: -16px;
+    filter: drop-shadow(0px 3px 3px rgba(0, 0, 0, .2)) // position: absolute;
+      // left: 0;
+      // top: -16px;
   }
 }
 

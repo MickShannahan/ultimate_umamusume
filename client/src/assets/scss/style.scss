@@ -17,9 +17,12 @@ body {
 }
 
 nav {
-  height: var(--nav-height);
+  height: calc(var(--nav-height));
+  border-bottom: 3px solid black;
   display: flex;
   align-items: center;
+  background: url(@/assets/img/bg_blue.jpg);
+  background-size: cover;
 }
 
 main {

@@ -3,9 +3,11 @@ import { RaceState } from '@/AppState.js';
 import { Racer } from '@/models/Racer.js';
 import { logger } from '@/utils/Logger.js';
 import { computed, watch, ref, useTemplateRef } from 'vue';
+import SpriteAnimator from './SpriteAnimator.vue';
+import { Sprite } from '@/models/Sprite.js';
 
-const {racer, trackLength} = defineProps({ racer: { type: Racer }, trackLength: Number })
-defineExpose({  })
+const { racer, trackLength } = defineProps({ racer: { type: Racer }, trackLength: Number })
+defineExpose({})
 const emit = defineEmits(['racer:finished'])
 
 
@@ -16,23 +18,23 @@ const finished = ref(false)
 const speedBurst = ref(false)
 
 
-watch(()=> racer.position, ()=>{
+watch(() => racer.position, () => {
 
-  if(finished.value)return
-  if(racer.position >= trackLength){
+  if (finished.value) return
+  if (racer.position >= trackLength) {
     racerFinished()
   }
-  
+
   speedEffects(racer.velocity)
 })
 
 function speedEffects(currentSpeed) {
   if (racer.velocity > 8) {
     logger.log('🌨️')
-    createLineEffect(500, 100, 100)
-  } 
+    createLineEffect(1000, 200, 200)
+  }
   else if (racer.velocity > 5.5) {
-    createDustEffect(200, 200, 100)
+    // createDustEffect(200, 200, 100)
   }
 }
 
@@ -66,19 +68,22 @@ function racerFinished() {
   emit('racer:finished', racer)
   finished.value = true
   const racerRef = RaceState.racers.find(r => r == racer)
-  racerRef.position = trackLength + 1
+  setTimeout(() => racerRef.position = trackLength + 1, 250)
 }
 
 </script>
 
 
 <template>
-  <div v-if="racer" class="sprite-wrapper" :id="'racer-'+racer.id">
-    <div class="debug"><i class="mdi mdi-horseshoe"></i>{{ racer.velocity.toFixed(1) }}  <i class="mdi mdi-heart"></i>{{ racer.staminaLeft.toFixed(1) }} 
+  <div v-if="racer" class="sprite-wrapper" :id="'racer-' + racer.id">
+    <div class="debug"><i class="mdi mdi-horseshoe"></i>{{ racer.velocity.toFixed(1) }} <i class="mdi mdi-heart"></i>{{
+      racer.staminaLeft.toFixed(1) }}
       <span v-if="racer.inRecovery">💚</span>
       <span v-if="racer.inBurst">🔥</span>
     </div>
-    <img ref="racer-sprite" :src="racer.sprite" alt="racer icon" class="racer-sprite" :class="{ finished, speedBurst }">
+    <!-- <img ref="racer-sprite" :src="racer.sprite" alt="racer icon" class="racer-sprite" :class="{ finished, speedBurst }"> -->
+    <SpriteAnimator :sprite="new Sprite({ spritePath: racer.sprite, frameCount: 10, fps: 16, height: 180, width: 180 })"
+      :speed="Math.max(.25, Math.log10(racer.velocity))" :classList="['racer-sprite']" />
   </div>
 </template>
 
@@ -86,8 +91,9 @@ function racerFinished() {
 <style lang="scss">
 div.debug {
   position: absolute;
+  z-index: 1111;
+  top: 5px;
   font-size: 11px;
-  z-index: 999;
   color: white;
 }
 
@@ -100,11 +106,12 @@ div.debug {
 }
 
 .racer-sprite {
-  transform: scaleX(-1);
-  width: 100%;
-  height: auto;
+  // transform: scaleX(-1);
+  // width: 100%;
+  // height: auto;
   position: relative;
-  z-index: 999
+  z-index: 999;
+  filter: drop-shadow(0px 3px 3px rgba(0, 0, 0, .4));
 }
 
 .racer-sprite.finished {
@@ -134,7 +141,7 @@ i.line {
   left: calc(var(--sprite-size) /3);
 }
 
-i.ghost{
+i.ghost {
   display: inline-block;
   height: var(--sprite-size);
   width: var(--sprite-size);

@@ -1,11 +1,14 @@
 import { logger } from "@/utils/Logger.js"
+import { randomFloat } from "@/utils/Random.js"
 
 
 export class Racer {
-  constructor(name, sprite, baseStats = {}, cards = [], startingEffects = []) {
+  constructor(name, sprite, baseStats = {}, cards = [], startingEffects = [], characterData = {}) {
     this.id = name.replace(' ', '-').toLowerCase()
     this.name = name
     this.sprite = sprite
+    this.color1 = characterData.color1 || 'var(--bs-pink)'
+    this.color2 = characterData.color2 || 'var(--bs-primary)'
     this.baseStats = {
       speed: baseStats.speed,
       stamina: baseStats.stamina,
@@ -72,7 +75,7 @@ export class Racer {
 
   runAtPace(deltaTime) {
     const gateBoost = this.velocity == 0 ? this.startingBoost ? this.startingBoost : this.powerNormal * .25 : 0
-    const randomVariation = (Math.random() * .75) - (Math.random() * .75)
+    const randomVariation = randomFloat(-0.75, 0.75)
     const maxSpeed = this.speedNormal + randomVariation
     const accelerationFactor = this.powerNormal * .01
     const acceleration = (maxSpeed - (this.velocity * .5)) * (accelerationFactor)
@@ -88,11 +91,13 @@ export class Racer {
   }
 
   runAtJog(deltaTime) {
-    const recoverySpeed = Math.max((this.raceMaxVelocity * .5), this.velocity * .98)
-    this.velocity = recoverySpeed
-    this.position += this.velocity * deltaTime
+    const recoverySpeed = Math.max((this.raceMaxVelocity * .5), this.velocity * .9)
+    const slowAmount = Math.min(this.velocity, recoverySpeed - this.velocity)
+    this.velocity += slowAmount * deltaTime
+    const distance = this.velocity * deltaTime
+    this.position += distance
 
-    const regenRate = 1.5 + (this.powerNormal * .25);
+    const regenRate = (this.stats.stamina * .0175) + (this.powerNormal * .25)
     this.staminaLeft += regenRate * deltaTime
 
     if (this.staminaLeft >= this.stats.stamina) this.exitRecovery();

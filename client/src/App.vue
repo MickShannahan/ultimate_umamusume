@@ -10,7 +10,7 @@ onMounted(umasService.loadFavoriteUmas)
 
 <template>
   <nav class="bg-black">
-    <i class="fw-bold fs-5 text-white">Ultimate Umamusume 🏇</i>
+    <i class="fw-bold fs-5 text-white px-2">Ultimate Umamusume <i class="mdi mdi-horseshoe"></i></i>
   </nav>
   <main>
     <RouterView />
